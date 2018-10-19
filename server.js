@@ -5,6 +5,7 @@
 var express = require('express');
 var fs = require('fs');
 var request = require('request');
+var async = require('async');
 var cheerio = require('cheerio');
 var app     = express();
 
@@ -74,6 +75,40 @@ app.get('/scrape', function(req, res){
 
         
   })
+
+  app.get('/export', function(req, res) {
+    
+    fs.exists('output.json', function(exists) {
+        if (exists) {
+            if (!fs.existsSync('images')){
+                fs.mkdirSync('images');
+            }
+            var list = require('./output.json');
+            // create a queue object with concurrency 2
+            var q = async.queue(function(task, callback) {
+                request(task.imgurl).pipe(fs.createWriteStream(__dirname + '/images/'+ task.name+'.png'));
+                callback();
+            }, 2);
+
+
+            // assign a callback
+            q.drain = function() {
+                console.log('all items have been processed');
+            };
+
+            for (i in list) {
+                q.push(list[i], function(err) {
+                    console.log('finished processing ', list[i].imgurl);
+                });
+            }
+            
+            res.send('Exporting to folder');
+        } else {
+            res.send("you haven't scraped yet! scraper first")
+        }
+      });
+
+  });
 
   app.listen('8081');
   
