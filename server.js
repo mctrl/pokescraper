@@ -49,7 +49,7 @@ app.get('/scrape', function(req, res){
                     imgurl = data.attr('data-src');
                     // Once we have our title, we'll store it to the our json object.
                     var obj = { name : "", imgurl : ""};
-                        obj.name = index;
+                        obj.name = index+1;
                         obj.imgurl = imgurl;
                         json.push(obj);
                 })
